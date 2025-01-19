@@ -1,23 +1,71 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import LoginView from '../views/pages/auth/LoginView.vue'
+import AppLayout from '../layout/AppLayout.vue'
+import { auth } from '@/firebase/config'
+import { onAuthStateChanged } from 'firebase/auth'
+import BannerView from '@/views/pages/bluearchive/BannerView.vue'
+import CharaView from '@/views/pages/bluearchive/CharaView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      component: AppLayout,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: HomeView,
+        },
+        {
+          path: 'banner',
+          name: 'Banner',
+          component: BannerView,
+        },
+        {
+          path: 'chara',
+          name: 'Character',
+          component: CharaView,
+        },
+      ],
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      path: '/login',
+      component: LoginView,
     },
   ],
+})
+
+let authInitialized = false
+
+const waitForAuth = () => {
+  return new Promise((resolve) => {
+    if (authInitialized) {
+      resolve(auth.currentUser)
+    } else {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        authInitialized = true
+        unsubscribe()
+        resolve(user)
+      })
+    }
+  })
+}
+
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const user = await waitForAuth()
+  console.log('Requires Auth:', requiresAuth)
+  console.log('User:', user)
+
+  if (requiresAuth && !user) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router
