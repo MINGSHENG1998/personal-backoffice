@@ -46,7 +46,7 @@ const handleWorkspaceSelect = (workspace: Workspace) => {
   currentWorkspace.value = {
     workspaceId: workspace.workspaceId,
     name: workspace.name,
-    pages: [],
+    pages: workspace.pages,
   }
 }
 </script>
