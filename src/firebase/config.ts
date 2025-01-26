@@ -1,8 +1,18 @@
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApp, getApps } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
+//todo: add other insatnce
 const firebaseConfig = {
+  apiKey: 'AIzaSyD0HhyCTL_TxOvbpp6Or52KBNx7tijeX-U',
+  authDomain: 'personal-backoffice-ms.firebaseapp.com',
+  projectId: 'personal-backoffice-ms',
+  storageBucket: 'personal-backoffice-ms.firebasestorage.app',
+  messagingSenderId: '198998051256',
+  appId: '1:198998051256:web:bde984d2b9d6b99d79274d',
+}
+
+const firebaseConfigBA = {
   apiKey: 'AIzaSyB6pWCe9NesXPQmKjgJ7dEekSKE03R4DDE',
   //authDomain: 'your-auth-domain',
   projectId: 'blue-archive-tool',
@@ -12,8 +22,10 @@ const firebaseConfig = {
 }
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
+const app = getApps().find((app) => app.name === '[DEFAULT]') || initializeApp(firebaseConfig)
+const baApp = getApps().find((app) => app.name === 'BA') || initializeApp(firebaseConfigBA, 'BA')
+
+export const baDB = getFirestore(baApp)
 
 // Initialize Firebase Authentication
-export const auth = getAuth(app)
+export const baAuth = getAuth(baApp)

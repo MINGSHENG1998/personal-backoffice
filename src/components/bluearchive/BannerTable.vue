@@ -108,9 +108,15 @@ const getCharacterBadges = (character: Character) => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-4 relative">
     <!-- Table -->
     <div class="relative overflow-hidden ring-1 ring-gray-200 dark:ring-gray-800 rounded-xl">
+      <!-- Overlay for dropdown to break out of table constraints -->
+      <div
+        v-if="selectedBanner"
+        class="fixed inset-0 z-40 bg-transparent"
+        @click.stop="selectedBanner = null"
+      ></div>
       <div
         v-if="loading"
         class="absolute inset-0 bg-gray-50/75 dark:bg-gray-800/75 backdrop-blur flex items-center justify-center z-10"
@@ -164,7 +170,7 @@ const getCharacterBadges = (character: Character) => {
             <template v-for="banner in filteredBanners" :key="banner.id">
               <!-- Banner Row -->
               <tr
-                class="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors"
+                class="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors relative"
                 :class="{ 'bg-gray-50/25 dark:bg-gray-800/25': banner.expanded }"
               >
                 <th scope="row" class="px-6 py-4">
@@ -228,12 +234,11 @@ const getCharacterBadges = (character: Character) => {
                     <!-- Dropdown menu -->
                     <div
                       v-if="selectedBanner === banner"
-                      v-click-outside="closeMenu"
-                      class="absolute right-0 top-full mt-1 w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                      class="fixed mt-1 w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
                     >
                       <div class="py-1">
                         <button
-                          @click.stop="emit('edit', banner)"
+                          @click.stop="((selectedBanner = null), emit('edit', banner))"
                           class="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <svg
@@ -252,7 +257,7 @@ const getCharacterBadges = (character: Character) => {
                           Edit
                         </button>
                         <button
-                          @click.stop="emit('delete', banner)"
+                          @click.stop="((selectedBanner = null), emit('delete', banner))"
                           class="flex w-full items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">

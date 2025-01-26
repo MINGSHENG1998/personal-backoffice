@@ -1,7 +1,7 @@
 // stores/bannerStore.ts
 import { defineStore } from 'pinia'
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
-import { db } from '../firebase/config'
+import { baDB } from '../firebase/config'
 import type { Banner, BannerFormData } from '../types/banner'
 
 export const useBannerStore = defineStore('banner', {
@@ -14,7 +14,7 @@ export const useBannerStore = defineStore('banner', {
     async fetchBanners() {
       this.loading = true
       try {
-        const bannersRef = collection(db, 'banners')
+        const bannersRef = collection(baDB, 'banners')
         const querySnapshot = await getDocs(bannersRef)
         this.banners = querySnapshot.docs.map((doc) => ({
           id: doc.id,

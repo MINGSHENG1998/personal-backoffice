@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/pages/auth/LoginView.vue'
 import AppLayout from '../layout/AppLayout.vue'
-import { auth } from '@/firebase/config'
+import { baAuth } from '@/firebase/config'
 import { onAuthStateChanged } from 'firebase/auth'
 import BannerView from '@/views/pages/bluearchive/BannerView.vue'
 import CharaView from '@/views/pages/bluearchive/CharaView.vue'
@@ -44,9 +44,9 @@ let authInitialized = false
 const waitForAuth = () => {
   return new Promise((resolve) => {
     if (authInitialized) {
-      resolve(auth.currentUser)
+      resolve(baAuth.currentUser)
     } else {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(baAuth, (user) => {
         authInitialized = true
         unsubscribe()
         resolve(user)

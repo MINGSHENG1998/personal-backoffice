@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
-import { db } from '../../../firebase/config'
+import { baDB } from '../../../firebase/config'
 import type { AtkType, DefType } from '../../../types/game'
 import Pagination from '@/components/Pagination.vue'
 import SearchBar from '@/components/SearchBar.vue'
@@ -115,8 +115,8 @@ const fetchData = async () => {
 
   try {
     const [bannersSnapshot, charactersSnapshot] = await Promise.all([
-      getDocs(collection(db, 'banners')),
-      getDocs(collection(db, 'characters')),
+      getDocs(collection(baDB, 'banners')),
+      getDocs(collection(baDB, 'characters')),
     ])
 
     banners.value = bannersSnapshot.docs.map((doc) => ({
@@ -157,9 +157,12 @@ const handleCreate = async () => {
   if (!validateForm()) return
 
   try {
-    await addDoc(collection(db, 'banners'), formData.value)
+    const docRef = await addDoc(collection(baDB, 'banners'), formData.value)
+    banners.value.push({
+      ...formData.value,
+      id: docRef.id,
+    })
     showModal.value = false
-    await fetchData()
     resetForm()
   } catch (err) {
     console.error('Failed to create banner:', err)
@@ -171,9 +174,16 @@ const handleUpdate = async () => {
   if (!selectedBanner.value || !validateForm()) return
 
   try {
-    await updateDoc(doc(db, 'banners', selectedBanner.value.id), formData.value)
+    await updateDoc(doc(baDB, 'banners', selectedBanner.value.id), formData.value)
+    const index = banners.value.findIndex((b) => b.id === selectedBanner?.value?.id)
+    if (index !== -1) {
+      banners.value[index] = {
+        ...banners.value[index],
+        ...formData.value,
+      }
+    }
+
     showModal.value = false
-    await fetchData()
   } catch (err) {
     console.error('Failed to update banner:', err)
     error.value = 'Failed to update banner. Please try again.'
@@ -184,9 +194,10 @@ const handleDelete = async () => {
   if (!selectedBanner.value) return
 
   try {
-    await deleteDoc(doc(db, 'banners', selectedBanner.value.id))
+    await deleteDoc(doc(baDB, 'banners', selectedBanner.value.id))
+    banners.value = banners.value.filter((b) => b.id !== selectedBanner?.value?.id)
+
     showDeleteModal.value = false
-    await fetchData()
   } catch (err) {
     console.error('Failed to delete banner:', err)
     error.value = 'Failed to delete banner. Please try again.'

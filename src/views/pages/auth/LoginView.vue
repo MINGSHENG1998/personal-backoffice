@@ -9,7 +9,7 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
 } from 'firebase/auth'
-import { auth } from '@/firebase/config'
+import { baAuth } from '@/firebase/config'
 
 const router = useRouter()
 const isLoading = ref(false)
@@ -43,13 +43,13 @@ const loginWithFirebase = async (credentials: {
   try {
     // Set persistence based on remember me checkbox
     await setPersistence(
-      auth,
+      baAuth,
       credentials.remember ? browserLocalPersistence : browserSessionPersistence,
     )
 
     // Sign in with Firebase
     const userCredential = await signInWithEmailAndPassword(
-      auth,
+      baAuth,
       credentials.email,
       credentials.password,
     )
