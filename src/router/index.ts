@@ -4,14 +4,29 @@ import LoginView from '../views/pages/auth/LoginView.vue'
 import AppLayout from '../layout/AppLayout.vue'
 import { baAuth } from '@/firebase/config'
 import { onAuthStateChanged } from 'firebase/auth'
+
+// BA (Blue Archive) views
 import BannerView from '@/views/pages/bluearchive/BannerView.vue'
 import CharaView from '@/views/pages/bluearchive/CharaView.vue'
+
+// CV views
+import DetailView from '@/views/pages/cv/DetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
+      component: AppLayout,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
+    {
+      path: '/w/:workspaceId',
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
@@ -22,23 +37,23 @@ const router = createRouter({
         },
         {
           path: 'banner',
-          name: 'Banner',
+          name: 'banner-list',
           component: BannerView,
         },
         {
           path: 'chara',
-          name: 'Character',
+          name: 'character-list',
           component: CharaView,
+        },
+        {
+          path: 'details',
+          name: 'cv-details',
+          component: DetailView,
         },
       ],
     },
-    {
-      path: '/login',
-      component: LoginView,
-    },
   ],
 })
-
 let authInitialized = false
 
 const waitForAuth = () => {
@@ -58,12 +73,11 @@ const waitForAuth = () => {
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const user = await waitForAuth()
-  console.log('Requires Auth:', requiresAuth)
-  console.log('User:', user)
 
   if (requiresAuth && !user) {
     next('/login')
   } else {
+    console.log('hi')
     next()
   }
 })

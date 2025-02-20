@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import workspaceSelector from '@/components/layout/WorkspaceSelector.vue'
 import Avatar from 'primevue/avatar'
 
 interface Workspace {
   workspaceId: string
   name: string
-  pages?: any[]
+  pages?: Page[]
 }
 
 interface Page {
@@ -15,11 +16,13 @@ interface Page {
   route: string
 }
 
+const route = useRoute()
+const router = useRouter()
 const isOpen = ref(false)
 
 const workspaces = ref([
   {
-    workspaceId: 'ws-1',
+    workspaceId: 'ba',
     name: 'Blue Archive Tools',
     pages: [
       {
@@ -35,19 +38,70 @@ const workspaces = ref([
     ],
   },
   {
-    workspaceId: '2',
+    workspaceId: 'cv',
     name: 'Personal CV',
+    pages: [
+      {
+        pageId: 'cv-1',
+        name: 'CV Details',
+        route: '/details',
+      },
+    ],
   },
 ])
 
 const currentWorkspace = ref(workspaces.value[0])
 
+const getWorkspaceById = (id: string) => {
+  return workspaces.value.find((w) => w.workspaceId === id)
+}
+
 const handleWorkspaceSelect = (workspace: Workspace) => {
   currentWorkspace.value = {
     workspaceId: workspace.workspaceId,
     name: workspace.name,
-    pages: workspace.pages,
+    pages: workspace.pages || [],
   }
+
+  router.push(`/w/${workspace.workspaceId}`)
+}
+
+// Watch for route changes to handle workspace selection from URL
+watch(
+  () => route.params.workspaceId,
+  (newWorkspaceId) => {
+    if (newWorkspaceId) {
+      const workspace = getWorkspaceById(newWorkspaceId as string)
+      if (workspace) {
+        currentWorkspace.value = workspace
+      } else {
+        // If invalid workspace ID, redirect to first workspace
+        handleWorkspaceSelect(workspaces.value[0])
+      }
+    }
+  },
+)
+
+// Initialize workspace based on URL on component mount
+onMounted(() => {
+  const workspaceId = route.params.workspaceId
+  if (workspaceId) {
+    const workspace = getWorkspaceById(workspaceId as string)
+    if (workspace) {
+      currentWorkspace.value = workspace
+    } else {
+      // If invalid workspace ID, redirect to first workspace
+      handleWorkspaceSelect(workspaces.value[0])
+    }
+  } else {
+    // If no workspace ID in URL, redirect to first workspace
+    handleWorkspaceSelect(workspaces.value[0])
+  }
+})
+
+// Update page routes to include workspace ID
+const getPageRoute = (page: Page) => {
+  return `/w/${currentWorkspace.value.workspaceId}${page.route}`
 }
 </script>
 
@@ -742,7 +796,7 @@ const handleWorkspaceSelect = (workspace: Workspace) => {
         <ul class="space-y-2">
           <li>
             <router-link
-              to="/"
+              :to="`/w/${currentWorkspace.workspaceId}`"
               class="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
             >
               <svg
@@ -798,7 +852,7 @@ const handleWorkspaceSelect = (workspace: Workspace) => {
             <ul v-show="isOpen" class="py-2 space-y-2">
               <li v-for="page in currentWorkspace.pages" :key="page.pageId">
                 <router-link
-                  :to="page.route"
+                  :to="getPageRoute(page)"
                   class="flex items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
                 >
                   {{ page.name }}

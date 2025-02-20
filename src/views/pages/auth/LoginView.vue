@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
 import { useRouter } from 'vue-router'
+import type { Auth } from 'firebase/auth'
 import {
   signInWithEmailAndPassword,
   setPersistence,
@@ -10,6 +11,22 @@ import {
   browserSessionPersistence,
 } from 'firebase/auth'
 import { baAuth } from '@/firebase/config'
+import { CVAuth } from '@/firebase/config'
+
+// Interface for credentials
+interface LoginCredentials {
+  email: string
+  password: string
+  remember: boolean
+}
+
+// Interface for response
+interface LoginResponse {
+  success: boolean
+  baUser: any
+  cvUser: any
+  error?: string
+}
 
 const router = useRouter()
 const isLoading = ref(false)
@@ -35,32 +52,42 @@ const { value: email } = useField('email')
 const { value: password } = useField('password')
 const { value: remember } = useField('remember')
 
-const loginWithFirebase = async (credentials: {
-  email: string
-  password: string
-  remember: boolean
-}) => {
+const loginToBothFirebaseProjects = async (
+  credentials: LoginCredentials,
+): Promise<LoginResponse> => {
   try {
-    // Set persistence based on remember me checkbox
-    await setPersistence(
+    const persistenceType = credentials.remember
+      ? browserLocalPersistence
+      : browserSessionPersistence
+
+    // Set persistence for first auth instance
+    await setPersistence(baAuth, persistenceType)
+
+    // Sign in to first project
+    const baUserCredential = await signInWithEmailAndPassword(
       baAuth,
-      credentials.remember ? browserLocalPersistence : browserSessionPersistence,
+      credentials.email,
+      credentials.password,
     )
 
-    // Sign in with Firebase
-    const userCredential = await signInWithEmailAndPassword(
-      baAuth,
+    // Reset persistence and sign in to second project
+    // We need to handle these sequentially
+    await setPersistence(CVAuth, persistenceType)
+    const cvUserCredential = await signInWithEmailAndPassword(
+      CVAuth,
       credentials.email,
       credentials.password,
     )
 
     return {
       success: true,
-      user: userCredential.user,
+      baUser: baUserCredential.user,
+      cvUser: cvUserCredential.user,
     }
   } catch (error: any) {
-    // Handle Firebase specific errors
+    // Enhanced error handling
     let message = 'An error occurred during sign in'
+
     switch (error.code) {
       case 'auth/user-not-found':
         message = 'No account found with this email'
@@ -78,7 +105,13 @@ const loginWithFirebase = async (credentials: {
         message = 'Too many failed attempts. Please try again later'
         break
     }
-    throw new Error(message)
+
+    return {
+      success: false,
+      baUser: null,
+      cvUser: null,
+      error: message,
+    }
   }
 }
 
@@ -87,7 +120,7 @@ const onSubmit = handleSubmit(async (values) => {
     isLoading.value = true
     errorMessage.value = ''
 
-    const response = await loginWithFirebase({
+    const response = await loginToBothFirebaseProjects({
       email: values.email,
       password: values.password,
       remember: values.remember || false,
@@ -98,6 +131,7 @@ const onSubmit = handleSubmit(async (values) => {
       // For example, using Pinia or Vuex
 
       // Redirect to dashboard
+      console.log(response)
       router.push('/')
     }
   } catch (error) {

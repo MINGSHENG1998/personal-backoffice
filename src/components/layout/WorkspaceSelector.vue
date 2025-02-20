@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Button from 'primevue/button'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Popover from 'primevue/popover'
 
 // Types
@@ -18,6 +18,7 @@ interface Props {
 }
 
 const workspaceMenu = ref()
+const route = useRoute()
 
 // Props
 const props = withDefaults(defineProps<Props>(), {
@@ -56,8 +57,6 @@ const selectWorkspace = (workspace: Workspace): void => {
   //sideNavType.value = 'main'
   emit('select-workspace', workspace)
   localStorage.setItem('personal-bo-currentWorkspaceId', workspace.workspaceId)
-  router.push(`/`)
-  //router.push(`/${workspace.workspaceId}/dashboard`)
 }
 
 const toggle = (event: any) => {
