@@ -124,6 +124,8 @@ const fetchData = async () => {
       ...doc.data(),
     })) as Banner[]
 
+    banners.value.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+
     characters.value = charactersSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
