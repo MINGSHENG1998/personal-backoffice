@@ -355,7 +355,7 @@ onMounted(fetchCharacters)
                   <option value="light">Light</option>
                   <option value="heavy">Heavy</option>
                   <option value="special">Special</option>
-                  <option value="elastic">elastic</option>
+                  <option value="elastic">Elastic</option>
                 </select>
               </div>
 
