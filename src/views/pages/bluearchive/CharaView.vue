@@ -339,6 +339,7 @@ onMounted(fetchCharacters)
                   <option value="piercing">Piercing</option>
                   <option value="mystic">Mystic</option>
                   <option value="sonic">Sonic</option>
+                  <option value="chemical">Chemical</option>
                 </select>
               </div>
 
@@ -356,6 +357,7 @@ onMounted(fetchCharacters)
                   <option value="heavy">Heavy</option>
                   <option value="special">Special</option>
                   <option value="elastic">Elastic</option>
+                  <option value="composite">Composite</option>
                 </select>
               </div>
 
